@@ -21,14 +21,31 @@ jobs:
     - name: Install dependencies
       run: npm install
     - name: Run integration tests
+      run: npm run test-npm-security
+  
+  test-integration:
+    needs: test-security
+    runs-on: ubuntu-latest 
+    steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v3
+    - name: Use Node.js 20
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20.x
+        cache: 'npm'
+    - name: Install dependencies
+      run: npm install
+    - name: Run integration tests
       run: npm test
+
   deploy:
-runs-on: ubuntu-latest
-if: github.ref == 'refs/heads/main'
-needs: test-integration
-steps:
-  - name: Deploy to production
-    uses: johnbeynon/render-deploy-action@v0.0.8
-    with:
-      service-id: ${{ secrets.SERVICE_ID }}
-      api-key: ${{ secrets.RENDER_TOKEN }}
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: test-integration
+    steps:
+      - name: Deploy to production
+        uses: johnbeynon/render-deploy-action@v0.0.8
+        with:
+          service-id: ${{ secrets.SERVICE_ID }}
+          api-key: ${{ secrets.RENDER_TOKEN }}
